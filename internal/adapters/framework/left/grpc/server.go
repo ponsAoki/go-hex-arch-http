@@ -4,7 +4,6 @@ import (
 	"log"
 	"net"
 
-	"hex/internal/adapters/core/arithmetic"
 	"hex/internal/adapters/framework/left/grpc/pb"
 	"hex/internal/ports"
 
@@ -16,7 +15,7 @@ type Adapter struct {
 }
 
 func NewAdapter(api ports.APIPort) *Adapter {
-return &Adapter{api: api}
+	return &Adapter{api: api}
 }
 
 func (grpca *Adapter) Run() {
@@ -35,4 +34,3 @@ func (grpca *Adapter) Run() {
 		log.Fatalf("failed to serve gRPC server over port 9000: %v", err)
 	}
 }
-

@@ -1,4 +1,4 @@
-FROM golang:1.15.3-alpine3.12
+FROM golang:1.21rc3-alpine3.18
 
 EXPOSE 9000
 

@@ -34,5 +34,5 @@ func main() {
 	appAdapter = api.NewAdapter(dbAdapter, core)
 
 	gRPCAdapter = gRPC.NewAdapter(appAdapter)
-	// gRPCAdapter.Run()
+	gRPCAdapter.Run()
 }
