@@ -1,38 +1,43 @@
 package main
 
 import (
-	"hex/internal/adapters/app/api"
-	"hex/internal/adapters/core/arithmetic"
-	"hex/internal/adapters/framework/right/db"
-	"hex/internal/ports"
+	entity "hex/internal/adapters/entities/arithmetic"
+	"hex/internal/adapters/frameworks/right/db"
+	usecase "hex/internal/adapters/interactors/usecases/arithmetic"
+	repository "hex/internal/adapters/repositories"
+	"hex/internal/config"
+	entity_ports "hex/internal/ports/entities"
+	framework_ports "hex/internal/ports/frameworks"
+	interactor_ports "hex/internal/ports/interactors"
+	repository_ports "hex/internal/ports/repositories"
 	"log"
-	"os"
 
-	gRPC "hex/internal/adapters/framework/left/grpc"
+	HTTP "hex/internal/adapters/frameworks/left/http"
 )
 
 func main() {
 	var err error
 
 	//ports
-	var dbAdapter ports.DbPort
-	var core ports.ArithmeticPort
-	var appAdapter ports.APIPort
-	var gRPCAdapter ports.GrpcPort
+	var arith entity_ports.ArithmeticPort
+	var arithRepoAdapter repository_ports.ArithmeticRepositoryPort
+	var nabeRepoAdapter repository_ports.NabeatsuRepositoryPort
+	var arithUcAdapter interactor_ports.ArithmeticApplicationServicePort
+	var httpAdapter framework_ports.HttpPort
 
-	dbDriver := os.Getenv("DB_DRIVER")
-	dataSourceName := os.Getenv("DATA_SOURCE_NAME")
-
-	dbAdapter, err = db.NewAdapter(dbDriver, dataSourceName)
+	dbAdapter, err := db.NewAdapter(config.Env.DB_DRIVER, config.Env.DATA_SOURCE_NAME)
 	if err != nil {
 		log.Fatalf("failed to initiate database connection: %v", err)
 	}
 	defer dbAdapter.CloseDbConnection()
 
-	core = arithmetic.NewAdapter()
+	arith = entity.NewArithmetic()
 
-	appAdapter = api.NewAdapter(dbAdapter, core)
+	arithRepoAdapter = repository.NewArithmeticRepository(dbAdapter.DB)
+	nabeRepoAdapter = repository.NewNabeatsuRepository(dbAdapter.DB)
 
-	gRPCAdapter = gRPC.NewAdapter(appAdapter)
-	gRPCAdapter.Run()
+	arithUcAdapter = usecase.NewArithmeticApplicationService(arithRepoAdapter, nabeRepoAdapter, arith)
+
+	httpAdapter = HTTP.NewAdapter(arithUcAdapter)
+	httpAdapter.Run()
 }
